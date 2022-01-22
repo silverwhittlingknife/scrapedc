@@ -2,6 +2,7 @@
 import datetime
 import re
 import requests
+import typing
 
 import bs4
 import sqlite3
@@ -163,6 +164,10 @@ def getDate(comicName: str):
   DCDBcomicTemplate = getTextareaString(comicName)
   return extractDateFromTextarea(DCDBcomicTemplate)
 
+def getAuthor(comicName: str):
+  DCDBcomicTemplate = getTextareaString(comicName)
+  return extractAuthorFromTextarea(DCDBcomicTemplate)
+
 #this is the code that was supposed to get the comic names from the sqlite database
 #def getBookNames(DBpath: str = 'comics.sqlite'):
   #conn = sqlite3.connect(DBpath)
@@ -177,7 +182,7 @@ def getDate(comicName: str):
 def getBookNames(DBpath: str = 'comics.sqlite'):
   return [line.strip() for line in open('allcomics.txt')]
 
-def putBookDatesInCursor(curs: sqlite3.Cursor):
+def putBookDatesInCursor(curs: sqlite3.Cursor, bookNames: typing.List[str]):
   for name in bookNames:
     if 'novel' in name or name == 'Batman: Fear Itself': continue
     try:
@@ -188,17 +193,41 @@ def putBookDatesInCursor(curs: sqlite3.Cursor):
     # print(name, year, month, day)
     curs.execute('''INSERT INTO Book VALUES (?, ?, ?, ?, ?)''', (name, name, year, month, day))
 
+def putAuthorsInCursor(curs: sqlite3.Cursor):
+  for name in bookNames:
+    if 'novel' in name or name == 'Batman: Fear Itself': continue
+    try:
+      author = getAuthor(name)
+    curs.execute('''INSERT INTO BookHasAuthor VALUES (?, ?)''', (name, author))
+
+def openDBandDoSomething(DBpath: str = 'comics.sqlite', doSomething: typing.Callable[[sqlite.Cursor], None]):
+  conn = sqlite3.connect(DBpath)
+  curs: sqlite3.Cursor = conn.cursor()
+  doSomething(curs)
+  curs.close()
+  conn.commit()
+  conn.close()
+
 def getBookDates(DBpath: str = 'comics.sqlite'):
   bookNames = getBookNames(DBpath)
   conn = sqlite3.connect(DBpath)
   curs: sqlite3.Cursor = conn.cursor()
-  putBookDatesInCursor(curs)
+  putBookDatesInCursor(curs, bookNames)
+  curs.close()
+  conn.commit()
+  conn.close()
+
+def getBookAuthors(DBpath: str = 'comics.sqlite'):
+  bookNames = getBookNames(DBpath)
+  conn = sqlite3.connect(DBpath)
+  curs: sqlite3.Cursor = conn.cursor()
+  putAuthorsInCursor(curs, bookNames)
   curs.close()
   conn.commit()
   conn.close()
 
 # print(getDate('Batman and Robin Vol 1 5'))
-print(getBookDates())
+getBookDates()
 
 #after you run this file there will be a table in the sqlite comics.sqlite database
 #the table is called Book and it has all the dates in it
