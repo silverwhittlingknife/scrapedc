@@ -116,6 +116,16 @@ assert int(matchObj.group(3)) == 1997
 
 #if afdsafdsa is true, do this; ELSE (if it's false) do this
 
+def getTextareaString(comicName: str):
+  underscores = comicName.replace(' ', '_')
+  url = 'https://dc.fandom.com/wiki/{}?action=edit'.format(underscores)
+  response = requests.get(url)
+  soup = bs4.BeautifulSoup(response.content)
+  textarea = soup.find('textarea')
+  if textarea is None:
+    raise DateNotFound(comicName, url)
+  return textarea.string
+
 def extractDateFromTextarea(textareastring: str):
   matchObj = dayMonthYearRE.search(textareastring)
   if matchObj is None:
@@ -148,16 +158,6 @@ def extractDateFromTextarea(textareastring: str):
           month = datetime.datetime.strptime(matchObj.group(2), '%b').month
   # Since we do not always have the day, we cannot make a date.
   return (year, month, day)
-
-def getTextareaString(comicName: str):
-  underscores = comicName.replace(' ', '_')
-  url = 'https://dc.fandom.com/wiki/{}?action=edit'.format(underscores)
-  response = requests.get(url)
-  soup = bs4.BeautifulSoup(response.content)
-  textarea = soup.find('textarea')
-  if textarea is None:
-    raise DateNotFound(comicName, url)
-  return textarea.string
 
 def getDate(comicName: str):
   DCDBcomicTemplate = getTextareaString(comicName)
