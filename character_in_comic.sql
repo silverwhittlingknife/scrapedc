@@ -17,7 +17,11 @@ CREATE TABLE Person (id INTEGER, name TEXT NOT NULL);
 
 INSERT INTO Person (id, name) SELECT DISTINCT personID, personID FROM PersonInBook;
 
-CREATE TEMPORARY TABLE PersonPairs (firstPersonID INTEGER, secondPersonID INTEGER);
+CREATE TABLE Author (id INTEGER, name TEXT NOT NULL);
+
+CREATE TABLE BookHasAuthor (bookID INTEGER, authorID INTEGER, FOREIGN KEY(bookID) REFERENCES Book(id), FOREIGN KEY(authorID) REFERENCES Author(id));
+
+CREATE TEMPORARY TABLE PersonPairs (firstPersonID INTEGER, secondPersonID INTEGER, FOREIGN KEY(firstPersonID) REFERENCES Person(id), FOREIGN KEY(secondPersonID) REFERENCES Person(id));
 
 INSERT INTO PersonPairs (firstPersonID, secondPersonID) SELECT firstPerson.id, secondPerson.id FROM Person AS firstPerson CROSS JOIN Person AS secondPerson WHERE firstPerson.id != secondPerson.id;
 
