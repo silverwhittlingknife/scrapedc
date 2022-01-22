@@ -89,8 +89,6 @@ assert int(matchObj.group(1)) == 29
 assert datetime.datetime.strptime(matchObj.group(2), '%B').month == 5
 assert int(matchObj.group(3)) == 1997
 
-<<<<<<< HEAD
-=======
 #the file has three functions which are defined with "def"
 #getDate (capitalization matters), getBookNames, and getBookDates
 #sublimetext puts them in teal when they're being defined but blue when they're being used
@@ -119,15 +117,37 @@ assert int(matchObj.group(3)) == 1997
 #if afdsafdsa is true, do this; ELSE (if it's false) do this
 
 def extractDateFromTextarea(textareastring: str):
-  underscores = comicName.replace(' ', '_')
-  url = 'https://dc.fandom.com/wiki/{}?action=edit'.format(underscores)
-  response = requests.get(url)
-  soup = bs4.BeautifulSoup(response.content)
-  textarea = soup.find('textarea')
-  if textarea is None:
-    raise DateNotFound(comicName, url)
-  DCDBcomicTemplate = textarea.string
-  return DCDBcomicTemplate
+  matchObj = dayMonthYearRE.search(textareastring)
+  if matchObj is None:
+    raise DateNotFound(comicName + 'Failed to find datetime regular expresison in ' + DCDBcomicTemplate)
+  if matchObj.group(1) is None:
+    day = None
+  else:
+    day = int(matchObj.group(1))
+  year = int(matchObj.group(3))
+  if matchObj.group(2) is None:
+    month = None
+  else:
+    if matchObj.group(2) == 'Winter':
+      month = 1
+    elif matchObj.group(2) == 'Spring':
+      month = 4
+    elif matchObj.group(2) == 'Summer':
+      month = 7
+    elif matchObj.group(2) == 'Fall':
+      month = 10
+    elif matchObj.group(2) == 'Holiday':
+      month = 12
+    else:
+      try:
+        month = int(matchObj.group(2))
+      except ValueError:
+        try:
+          month = datetime.datetime.strptime(matchObj.group(2), '%B').month
+        except ValueError:
+          month = datetime.datetime.strptime(matchObj.group(2), '%b').month
+  # Since we do not always have the day, we cannot make a date.
+  return (year, month, day)
 
 def getTextareaString(comicName: str):
   underscores = comicName.replace(' ', '_')
