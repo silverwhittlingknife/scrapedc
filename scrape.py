@@ -177,10 +177,7 @@ def getDate(comicName: str):
 def getBookNames(DBpath: str = 'comics.sqlite'):
   return [line.strip() for line in open('allcomics.txt')]
 
-def getBookDates(DBpath: str = 'comics.sqlite'):
-  bookNames = getBookNames(DBpath)
-  conn = sqlite3.connect(DBpath)
-  curs: sqlite3.Cursor = conn.cursor()
+def putBookDatesInCursor(curs: sqlite3.Cursor):
   for name in bookNames:
     if 'novel' in name or name == 'Batman: Fear Itself': continue
     try:
@@ -190,6 +187,12 @@ def getBookDates(DBpath: str = 'comics.sqlite'):
       continue
     # print(name, year, month, day)
     curs.execute('''INSERT INTO Book VALUES (?, ?, ?, ?, ?)''', (name, name, year, month, day))
+
+def getBookDates(DBpath: str = 'comics.sqlite'):
+  bookNames = getBookNames(DBpath)
+  conn = sqlite3.connect(DBpath)
+  curs: sqlite3.Cursor = conn.cursor()
+  putBookDatesInCursor(curs)
   curs.close()
   conn.commit()
   conn.close()
