@@ -72,6 +72,8 @@ def extractDateFromTextarea(textareastring: str):
       month = 7
     elif matchObj.group(2) == 'Fall':
       month = 10
+    elif matchObj.group(2) == 'Holiday':
+      month = 12
     else:
       try:
         month = int(matchObj.group(2))
