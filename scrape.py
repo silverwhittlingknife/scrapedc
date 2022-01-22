@@ -52,15 +52,7 @@ assert int(matchObj.group(1)) == 29
 assert datetime.datetime.strptime(matchObj.group(2), '%B').month == 5
 assert int(matchObj.group(3)) == 1997
 
-def getDate(comicName: str):
-  underscores = comicName.replace(' ', '_')
-  url = 'https://dc.fandom.com/wiki/{}?action=edit'.format(underscores)
-  response = requests.get(url)
-  soup = bs4.BeautifulSoup(response.content)
-  textarea = soup.find('textarea')
-  if textarea is None:
-    raise DateNotFound(comicName, url)
-  DCDBcomicTemplate = textarea.string
+def extractDateFromTextarea(textareastring: str):
   matchObj = dayMonthYearRE.search(DCDBcomicTemplate)
   if matchObj is None:
     raise DateNotFound(comicName + 'Failed to find datetime regular expresison in ' + DCDBcomicTemplate)
@@ -91,6 +83,20 @@ def getDate(comicName: str):
   # Since we do not always have the day, we cannot make a date.
   return (year, month, day)
 
+def getTextareaString(comicName: str):
+  underscores = comicName.replace(' ', '_')
+  url = 'https://dc.fandom.com/wiki/{}?action=edit'.format(underscores)
+  response = requests.get(url)
+  soup = bs4.BeautifulSoup(response.content)
+  textarea = soup.find('textarea')
+  if textarea is None:
+    raise DateNotFound(comicName, url)
+  return textarea.string
+
+def getDate(comicName: str):
+  DCDBcomicTemplate = getTextareaString(comicName)
+  return extractDateFromTextarea(DCDBcomicTemplate)
+
 def getBookNames(DBpath: str = 'comics.sqlite'):
   conn = sqlite3.connect(DBpath)
   curs = conn.cursor()
@@ -100,7 +106,7 @@ def getBookNames(DBpath: str = 'comics.sqlite'):
 def getBookDates(DBpath: str = 'comics.sqlite'):
   bookNames = getBookNames(DBpath)
   conn = sqlite3.connect(DBpath)
-  curs = conn.cursor()
+  curs: sqlite3.Cursor = conn.cursor()
   for name in bookNames:
     if 'novel' in name or name == 'Batman: Fear Itself': continue
     try:
