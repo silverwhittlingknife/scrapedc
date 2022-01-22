@@ -128,7 +128,7 @@ def getDate(comicName: str):
   DCDBcomicTemplate = textarea.string
   matchObj = dayMonthYearRE.search(DCDBcomicTemplate)
   if matchObj is None:
-    raise DateNotFound(comicName + 'Failed to find datetime regular expression in ' + DCDBcomicTemplate)
+    raise DateNotFound(comicName + 'Failed to find datetime regular expresison in ' + DCDBcomicTemplate)
   if matchObj.group(1) is None:
     day = None
   else:
