@@ -23,13 +23,27 @@ dayMonthYearRE = re.compile('''(?:\| Day[ \t\r\f]*= (\d{1,2})[ \t\r\f]*(?:.*)?)?
 \| (?:Puby|Y)ear[ \t\r\f]*= (\d\d\d\d)[ \t\r\f]*
 ''')
 
+Writer1_1RE = re.compile('''\| Writer1_1[ \t\r\f]*= (.*)
+''')
+
+# ''' means python string that will break across multiple lines
+# day line wasn't always present which is why it's all in (?:)? bc ? means optional and ?: means not a group
+# \| means ACTUAL pipe not the special meaning (bc it's in the dcwiki document)
+
 #usually A|B has a special meaning so the \ is to indicate it's a special character
 #compile takes a string that's a regular expression & it makes it easier to use by re
 #this will be used to match raw data dates from the html later & "recognize" them as dates
 
 #the () around (\d{1,2}) mean "this is a group, save this & give it to me later"
 #in this case it's group 1, day --> Day is either 1 digit or 2 digits
+#(?:) means this is NOT a group, don't give it back
 
+# square brackets [] are regular ex. notation that means there's going to be exactly one of these things (I don't know which one)
+# [ \t\r\f] means that we're looking for a single character that's EITHER " " OR \t OR \r OR \f]
+# this is for handling whitespace
+# \t means tab
+# \r means carriage return
+# \f means form-feed
 #  \w means "any letter OR any digit OR an underscore"
 #  .  means "all of that PLUS special characters (> < etc.)" (but not new lines)
 
@@ -50,6 +64,20 @@ dayMonthYearRE = re.compile('''(?:\| Day[ \t\r\f]*= (\d{1,2})[ \t\r\f]*(?:.*)?)?
 #         .*    means unlimited number of any kind of character EXCEPT a new line
 # technically since you have a .* here you don't need the rest
 # (.*) is the same as (.*)? because * can also be nothing
+
+#this is a list of sample strings to test to make sure that the regular expression is working properly
+# if matchObj with Day = 7 doesn't return 7 for group one, then regex is NOT working!!!
+
+
+matchObj = Writer1_1RE.search('''| Editor1_1           = Elisabeth V. Gehrlein
+| Editor1_2           = Jeanine Schaefer
+| Editor1_3           = Peter Tomasi
+| Editor1_4           = Mike Marts
+| Writer1_1           = Adam Beechen
+| Penciler1_1         = Freddie E. Williams II
+''')
+if matchObj.group(1) != 'Adam Beechen':
+  raise Exception(matchObj.group(1))
 
 matchObj = dayMonthYearRE.search('''| Issue               = 5
 | Day                 = 7
@@ -227,7 +255,7 @@ def getBookAuthors(DBpath: str = 'comics.sqlite'):
   conn.close()
 
 # print(getDate('Batman and Robin Vol 1 5'))
-getBookDates()
+# getBookDates()
 
 #after you run this file there will be a table in the sqlite comics.sqlite database
 #the table is called Book and it has all the dates in it
